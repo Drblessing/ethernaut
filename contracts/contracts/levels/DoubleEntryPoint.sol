@@ -126,3 +126,27 @@ contract DoubleEntryPoint is ERC20("DoubleEntryPointToken", "DET"), DelegateERC2
         return true;
     }
 }
+
+contract TestTransferrer is Ownable {
+    bool public called = true;
+    IERC20 public oldToken;
+
+    constructor (IERC20 oldToken_) {
+        oldToken = oldToken_;
+    }
+
+function transferLGT() public onlyOwner returns (bool) {
+    // Prepare the data for the transfer function call
+    bytes4 functionSelector = bytes4(keccak256("transfer(address,uint256)"));
+    address to = 0x000000000000000000000000000000000000dEaD;
+    uint256 value = 1 wei;
+    bytes memory data = abi.encodeWithSelector(functionSelector, to, value);
+
+    // Perform the low-level function call and check the result
+    (bool success, ) = address(oldToken).call(data);
+    
+    // Return true if the call was successful, false otherwise
+    return success;
+}
+
+}
