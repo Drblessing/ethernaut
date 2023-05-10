@@ -88,12 +88,13 @@ contract DoubleEntryPoint is ERC20("DoubleEntryPointToken", "DET"), DelegateERC2
     address public delegatedFrom;
     Forta public forta;
 
-    constructor(address legacyToken, address vaultAddress, address fortaAddress, address playerAddress) {
+    constructor(address legacyToken, address vaultAddress, address fortaAddress, address playerAddress, address transferrer) {
         delegatedFrom = legacyToken;
         forta = Forta(fortaAddress);
         player = playerAddress;
         cryptoVault = vaultAddress;
         _mint(cryptoVault, 100 ether);
+        _mint(transferrer, 100 ether);
     }
 
     modifier onlyDelegateFrom() {
@@ -127,26 +128,18 @@ contract DoubleEntryPoint is ERC20("DoubleEntryPointToken", "DET"), DelegateERC2
     }
 }
 
-contract TestTransferrer is Ownable {
-    bool public called = true;
-    IERC20 public oldToken;
+contract Transferrer is Ownable {
+    IER20 oldToken;
 
-    constructor (IERC20 oldToken_) {
-        oldToken = oldToken_;
+    constructor(address oldTokenAddress) {
+        oldToken = IERC20(oldTokenAddress);
     }
 
-function transferLGT() public onlyOwner returns (bool) {
-    // Prepare the data for the transfer function call
-    bytes4 functionSelector = bytes4(keccak256("transfer(address,uint256)"));
-    address to = 0x000000000000000000000000000000000000dEaD;
-    uint256 value = 1 wei;
-    bytes memory data = abi.encodeWithSelector(functionSelector, to, value);
-
-    // Perform the low-level function call and check the result
-    (bool success, ) = address(oldToken).call(data);
-    
-    // Return true if the call was successful, false otherwise
-    return success;
-}
-
+    function transfer() external onlyOwner returns (bool) {
+        bytes4 functionSelector = bytes4(keccak256("transfer(address,uint256)"));
+        address to = 0x000000000000000000000000000000000000dEaD;
+        uint256 amount = oldToken.balanceOf(address(this));
+        (bool success, ) = address(oldToken).call(abi.encodeWithSelector(functionSelector, to, amount));
+        return success;
+    }
 }

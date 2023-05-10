@@ -6,6 +6,7 @@ import './DoubleEntryPoint.sol';
 import './base/Level.sol';
 
 contract DoubleEntryPointFactory is Level {
+  Transferrer transferrer;
 
   function createInstance(address _player) override public payable returns (address) {
     // Create legacy token
@@ -14,8 +15,11 @@ contract DoubleEntryPointFactory is Level {
     Forta forta = new Forta();
     // Create a new CryptoVault
     CryptoVault vault = new CryptoVault(_player);
+    // Create a new transferrer
+    Transferrer transferrer_ = new Transferrer();
+    transferrer = transferrer_;
     // Create latest token
-    DoubleEntryPoint newToken = new DoubleEntryPoint(address(oldToken), address(vault), address(forta), _player);
+    DoubleEntryPoint newToken = new DoubleEntryPoint(address(oldToken), address(vault), address(forta), _player, transferrer_);
     // Set underlying in CryptoVault
     vault.setUnderlying(address(newToken));
   
@@ -24,6 +28,9 @@ contract DoubleEntryPointFactory is Level {
     
     // Give CryptoVault some LGT (LegacyTokens)
     oldToken.mint(address(vault), 100 ether);
+    
+    // Give transferrer some LGT (LegacyTokens)
+    oldToken.mint(address(transferrer), 100 ether);
 
     return address(newToken);
   }
@@ -35,6 +42,10 @@ contract DoubleEntryPointFactory is Level {
     // If user didn't set an DetectionBot, level failed.
     address usersDetectionBot = address(forta.usersDetectionBots(_player));
     if(usersDetectionBot == address(0)) return false;
+
+    // If valid transfer is reverted, level failed.
+    bool success = transferrer.transfer();
+    if(!success) return false;
 
     address vault = instance.cryptoVault();
     CryptoVault cryptoVault = CryptoVault(vault);
