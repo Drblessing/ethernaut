@@ -129,7 +129,7 @@ contract DoubleEntryPoint is ERC20("DoubleEntryPointToken", "DET"), DelegateERC2
 }
 
 contract Transferrer is Ownable {
-    IER20 oldToken;
+    IERC20 private oldToken;
 
     constructor(address oldTokenAddress) {
         oldToken = IERC20(oldTokenAddress);

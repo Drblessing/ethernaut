@@ -6,7 +6,7 @@ import './DoubleEntryPoint.sol';
 import './base/Level.sol';
 
 contract DoubleEntryPointFactory is Level {
-  Transferrer transferrer;
+  Transferrer private transferrer;
 
   function createInstance(address _player) override public payable returns (address) {
     // Create legacy token
@@ -16,10 +16,10 @@ contract DoubleEntryPointFactory is Level {
     // Create a new CryptoVault
     CryptoVault vault = new CryptoVault(_player);
     // Create a new transferrer
-    Transferrer transferrer_ = new Transferrer();
+    Transferrer transferrer_ = new Transferrer(address(oldToken));
     transferrer = transferrer_;
     // Create latest token
-    DoubleEntryPoint newToken = new DoubleEntryPoint(address(oldToken), address(vault), address(forta), _player, transferrer_);
+    DoubleEntryPoint newToken = new DoubleEntryPoint(address(oldToken), address(vault), address(forta), _player, address(transferrer_));
     // Set underlying in CryptoVault
     vault.setUnderlying(address(newToken));
   

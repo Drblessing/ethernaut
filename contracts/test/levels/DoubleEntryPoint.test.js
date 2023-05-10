@@ -53,7 +53,9 @@ contract('DoubleEntryPoint', function (accounts) {
 
     const fortaContract = await Forta.at(fortaAddress);
 
-    const detectionBot = await DetectionBot.new(fortaAddress, { from: player });
+    const vaultAddress = await instance.cryptoVault();
+
+    const detectionBot = await DetectionBot.new(fortaAddress, vaultAddress, { from: player });
 
     await fortaContract.setDetectionBot(detectionBot.address, { from: player });
 
